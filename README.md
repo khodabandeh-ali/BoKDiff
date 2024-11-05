@@ -121,6 +121,9 @@ def _markInRange2(query_points, ref_points, cutoff):
     query_bool[indices] = 1
     return query_bool, min_dist
 ```
+### Continue running when ssh closes
+nohup python ./scripts/alignment.py &
+
 
 ## Results
 - JSD of bond distances

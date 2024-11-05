@@ -14,9 +14,7 @@ from torch_scatter import scatter_sum
 from tqdm.auto import tqdm
 import subprocess
 import time
-
 import random
-random.seed(21) 
 
 
 def high_reward_dataset(batch_size, ckpt_path):
@@ -63,11 +61,13 @@ def high_reward_dataset(batch_size, ckpt_path):
 
 if __name__ == '__main__':
     alignment_iter = 1
+    random.seed(alignment_iter + 94)
+
     if alignment_iter == 1:
         ckpt_path = 'pretrained_models/uni_o2_bond.pt'
 
     # Data collection
-    batch_size = 2
+    batch_size = 128
     high_reward_dataset(batch_size, ckpt_path)
     
     # Pre-processing the Data

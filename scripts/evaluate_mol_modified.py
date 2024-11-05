@@ -62,20 +62,6 @@ def get_pose_sdf(pdb_file = "docked_pose.pdb", sdf_file = "final_docked_pose.sdf
     # Load the PDB file
     pdb_file2 = "cleaned_docked_pose.pdb"
     mol = next(pybel.readfile("pdb", pdb_file2))
-    docked_mol = mol.OBMol
-
-    # Remove atoms without bonds and save the updated docked pose
-    # docked_mol.DeleteHydrogens()
-    # flag = False
-    # while not flag:
-    #     i = 0
-    #     for atom in ob.OBMolAtomIter(docked_mol):
-    #         a = pybel.Atom(atom)
-    #         if a.degree == 0:
-    #             docked_mol.DeleteAtom(atom)
-    #             i += 1
-    #     if i == 0:
-    #         flag = True
 
     # Save the modified docked pose to SDF format
     mol.write("sdf", sdf_file, overwrite=True)
@@ -173,7 +159,10 @@ def min_max_scaler(values):
     max_value = max(values)
 
     # Scale the values using Min-Max scaling
-    scaled_values = [(x - min_value) / (max_value - min_value) for x in values]
+    try:
+        scaled_values = [(x - min_value) / (max_value - min_value) for x in values]
+    except:
+        scaled_values = [0 for x in values]
     
     return scaled_values
 
