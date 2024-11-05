@@ -16,7 +16,7 @@ import subprocess
 import time
 
 import random
-random.seed(47) 
+random.seed(21) 
 
 
 def high_reward_dataset(batch_size, ckpt_path):
@@ -67,7 +67,7 @@ if __name__ == '__main__':
         ckpt_path = 'pretrained_models/uni_o2_bond.pt'
 
     # Data collection
-    batch_size = 1
+    batch_size = 2
     high_reward_dataset(batch_size, ckpt_path)
     
     # Pre-processing the Data

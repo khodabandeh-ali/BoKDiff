@@ -174,7 +174,7 @@ def extract_subcomplex(config, protein_path, ligand_sdf_path,
         w.write(rdmol)
         w.close()
         if config.pocket.protein_ext_method == 'submol_radius':
-            _, union_residues = protein.query_residues_centers(rdmol.GetConformer(0).GetPositions(),
+            _, union_residues, min_rad = protein.query_residues_centers(rdmol.GetConformer(0).GetPositions(),
                                                                config.pocket.protein_radius)
         else:
             union_residues = union_pocket_residues(all_pocket_residues)

@@ -303,7 +303,7 @@ def extract_subpockets(protein, pocket, method, **kwargs):
     elif method == 'v2':
         # Method 2: alpha atom --> sphere with a large radius
         centers = [a.centroid for a in pocket.alphas]
-        selected_atom_serial, selected_residues = protein.query_residues_centers(
+        selected_atom_serial, selected_residues, min = protein.query_residues_centers(
             centers, radius=kwargs['protein_radius'])
 
     elif method == 'v3':
@@ -314,13 +314,13 @@ def extract_subpockets(protein, pocket, method, **kwargs):
 
     elif method == 'submol_radius':
         centers = kwargs['submol'].GetConformer(0).GetPositions()
-        selected_atom_serial, selected_residues = protein.query_residues_centers(
+        selected_atom_serial, selected_residues, min = protein.query_residues_centers(
             centers, radius=kwargs['protein_radius'])
 
     else:
         raise NotImplementedError
 
-    return selected_atom_serial, selected_residues
+    return selected_atom_serial, selected_residues, min
 
 
 def union_pocket_residues(all_pocket_residues):

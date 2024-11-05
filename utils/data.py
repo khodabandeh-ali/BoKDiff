@@ -198,16 +198,19 @@ class PDBProtein(object):
         selected_atom_serial = []
         selected_residues = []
         sel_idx = set()
+        min = 1000000
         for center in centers:
             for i, residue in enumerate(self.residues):
                 distance = np.linalg.norm(residue[criterion] - center, ord=2)
+                if distance < min:
+                    min = distance
                 if distance < radius and i not in sel_idx:
                     selected_residues.append(residue)
                     sel_idx.add(i)
 
         for res in selected_residues:
             selected_atom_serial += [self.atoms[a_idx]['atom_id'] for a_idx in res['atoms']]
-        return selected_atom_serial, selected_residues
+        return selected_atom_serial, selected_residues, min
 
     def query_residues_atom_centers(self, centers, radius):
         selected_atom_serial = []

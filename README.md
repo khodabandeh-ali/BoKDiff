@@ -68,6 +68,60 @@ python scripts/evaluate_mol_from_meta_full.py $SAMPLE_OUT_DIR \
   --aggregate_meta True --result_path ./evals
 ```
 
+### Alphaspace2 modifications
+Snapshot.py file change two functions:
+```python
+def calculateContact(self, coords, cutoff):
+  """
+  Mark alpha/beta/pocket atoms as contact with in cutoff of ref points.
+
+  _Beta atom and pocket atoms are counted as contact if any of their child alpha atoms is in contact.
+
+  Parameters
+  ----------
+  coords: np.array shape = (n,3)
+
+  Returns
+  -------
+  """
+
+  self._alpha_contact, min_dist = _markInRange2(self._alpha_xyz, ref_points=coords, cutoff=cutoff)
+  self._beta_contact = np.array(
+      [np.any(self._alpha_contact[alpha_indices]) for alpha_indices in self._beta_alpha_index_list])
+
+  self._pocket_contact = np.array(
+      [np.any(self._alpha_contact[alpha_indices]) for alpha_indices in self._pocket_alpha_index_list])
+  return min_dist
+
+def run(self, receptor, binder=None, cutoff=1.6):
+
+  self.genAlphas(receptor)
+  
+  self.genPockets()
+
+  self.genBetas()
+  
+  self.genBScore(receptor)
+  
+  if binder is not None:
+      min_dist = self.calculateContact(coords=binder.xyz[0] * 10, cutoff=cutoff)
+      return min_dist
+```
+functions.py file add two new def modules:
+```python
+def _findInRange2(query_points, ref_points, cutoff):
+    min_dist = np.min(cdist(query_points, ref_points))
+    indices = np.where(cdist(query_points, ref_points) <= cutoff)[0]
+    indices = np.unique(indices)
+    return indices, min_dist
+
+def _markInRange2(query_points, ref_points, cutoff):
+    indices, min_dist = _findInRange2(query_points, ref_points, cutoff)
+    query_bool = np.zeros(len(query_points), dtype=np.bool_)
+    query_bool[indices] = 1
+    return query_bool, min_dist
+```
+
 ## Results
 - JSD of bond distances
 
