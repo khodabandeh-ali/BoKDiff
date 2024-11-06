@@ -352,7 +352,7 @@ if __name__ == '__main__':
 
     i = 0
     flag = False
-    while flag:
+    while not flag:
         try:
             os.makedirs('./new_data_temp/'+folder_name)
             flag = True

@@ -123,7 +123,7 @@ def _markInRange2(query_points, ref_points, cutoff):
 ```
 ### Continue running when ssh closes
 nohup python ./scripts/alignment.py &
-
+nohup python ./scripts/final_eval.py &
 
 ## Results
 - JSD of bond distances

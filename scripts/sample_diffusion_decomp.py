@@ -560,16 +560,10 @@ if __name__ == '__main__':
 
     # data = pocket_pdb_to_pocket(index['data']['protein_file'])
     
-    try:
-        dataset, subsets = get_decomp_dataset(
-            config=ckpt['config'].data,
-            transform=None,
-        )
-    except:
-        dataset, subsets = get_decomp_dataset(
-            config=ckpt_base['config'].data,
-            transform=None,
-        )
+    dataset, subsets = get_decomp_dataset(
+        config=ckpt_base['config'].data,
+        transform=None,
+    )
     train_set, val_set = subsets['train'], subsets['test']
     data = val_set[args.data_id]
     # print(len(train_set)) #99165

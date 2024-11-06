@@ -4,7 +4,6 @@ import pickle
 import shutil
 import time
 import concurrent.futures
-
 import numpy as np
 import torch
 from rdkit import Chem, RDLogger
@@ -16,6 +15,9 @@ import subprocess
 import time
 import random
 
+def remove_file(file_path):
+    if os.path.exists(file_path):
+        os.remove(file_path)
 
 def high_reward_dataset(batch_size, ckpt_path):
     # Delete previously created files and data
@@ -29,6 +31,9 @@ def high_reward_dataset(batch_size, ckpt_path):
     shutil.rmtree("./new_data_temp", ignore_errors=True)
     shutil.rmtree("./tmp", ignore_errors=True)
     shutil.rmtree("./data/crossdocked_samples_processed", ignore_errors=True)
+    remove_file("./data/crossdocked_samples_processed_full_ref_prior_aromatic_name2id.pt")
+    remove_file("./data/crossdocked_samples_processed_full_ref_prior_aromatic.lmdb")
+    remove_file("./data/crossdocked_samples_processed_full_ref_prior_aromatic.lmdb-lock")
 
     # Sample a batch for generating new dataset
     indices = random.sample(range(1, 99165), batch_size)
@@ -60,22 +65,23 @@ def high_reward_dataset(batch_size, ckpt_path):
 
 
 if __name__ == '__main__':
-    alignment_iter = 1
+    alignment_iter = 2
     random.seed(alignment_iter + 94)
 
     if alignment_iter == 1:
         ckpt_path = 'pretrained_models/uni_o2_bond.pt'
     else:
-        raise Exception("Define new model checkpoint")
+        ckpt_name = 'al_iter' + str(alignment_iter-1) + '.pt'
+        ckpt_path = 'pretrained_models/' + ckpt_name
 
-    # # Data collection
-    # batch_size = 128
-    # high_reward_dataset(batch_size, ckpt_path)
+    # Data collection
+    batch_size = 128
+    high_reward_dataset(batch_size, ckpt_path)
     
-    # # Pre-processing the Data
-    # preprocessing_args = ["--dest", "./data/crossdocked_samples_processed"]
-    # preprocess = subprocess.run(["python", "scripts/preprocess_new_data.py", "configs/preprocessing/crossdocked_samples.yml"] + preprocessing_args)
+    # Pre-processing the Data
+    preprocessing_args = ["--dest", "./data/crossdocked_samples_processed"]
+    preprocess = subprocess.run(["python", "scripts/preprocess_new_data.py", "configs/preprocessing/crossdocked_samples.yml"] + preprocessing_args)
 
     # Training
-    training_args = ["--alignment_iter", str(alignment_iter)]
-    training = subprocess.run(["python", "scripts/train_aligned_decomp.py", "configs/alignment_training.yml"] + training_args)
+    # training_args = ["--alignment_iter", str(alignment_iter)]
+    # training = subprocess.run(["python", "scripts/train_aligned_decomp.py", "configs/alignment_training.yml"] + training_args)

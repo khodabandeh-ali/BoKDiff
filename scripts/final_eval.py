@@ -17,7 +17,7 @@ import time
 import random
 
 
-def aggregate_eval(batch_size, ckpt_path):
+def aggregate_eval(batch_size, ckpt_path, pre_ckpt):
     fixed_seed = 7
     random.seed(fixed_seed)
 
@@ -32,7 +32,7 @@ def aggregate_eval(batch_size, ckpt_path):
     
     try:
         result_path = "./final_evals"
-        shutil.copytree(result_path, result_path +'_history/'+ ckpt_path.split('/')[-1][:-3], dirs_exist_ok=True)
+        shutil.copytree(result_path, result_path +'_history/'+ pre_ckpt.split('/')[-1][:-3], dirs_exist_ok=True)
         shutil.rmtree(result_path)
     except:
         pass
@@ -61,9 +61,15 @@ def aggregate_eval(batch_size, ckpt_path):
 
 
 if __name__ == '__main__':
+    start_time_g = time.time()
+
     # Evaluation
-    batch_size = 1
-    ckpt_path = './pretrained_models/uni_o2_bond.pt'
-    # ckpt_path = './pretrained_models/1000.pt'
-    aggregate_eval(batch_size, ckpt_path)
-    
+    batch_size = 30
+    # ckpt_path = './pretrained_models/uni_o2_bond.pt'
+    pre_ckpt = './pretrained_models/uni_o2_bond.pt'
+    ckpt_path = './pretrained_models/1000.pt'
+    aggregate_eval(batch_size, ckpt_path, pre_ckpt)
+
+    end_time_g = time.time()
+    duration = end_time_g - start_time_g
+    print(f'--------------------------  | Overall duration: {duration:.0f} (s) |  -------------------------')
