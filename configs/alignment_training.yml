@@ -80,7 +80,7 @@ train:
   batch_size: 4
   num_workers: 4
   n_acc_batch: 1
-  max_iters: 200 ##### Here!
+  max_iters: 1000 ##### Here!
   val_freq: 2000
   pos_noise_std: 0.1
   prior_noise_std: 0.5
@@ -88,7 +88,7 @@ train:
   bond_loss_weight: 1.0
   optimizer:
     type: adam
-    lr: 5.e-4
+    lr: 1.e-6
     weight_decay: 0
     beta1: 0.95
     beta2: 0.999
@@ -96,4 +96,4 @@ train:
     type: plateau
     factor: 0.6
     patience: 10
-    min_lr: 1.e-6
+    min_lr: 1.e-8

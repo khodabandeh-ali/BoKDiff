@@ -349,7 +349,17 @@ if __name__ == '__main__':
     os.makedirs('./new_data_temp', exist_ok=True)
     folder_name = args.protein_path.split('/')[0]
     protein_name = args.protein_path.split('/')[1].split('.')[0]
-    os.makedirs('./new_data_temp/'+folder_name)
+
+    i = 0
+    flag = False
+    while flag:
+        try:
+            os.makedirs('./new_data_temp/'+folder_name)
+            flag = True
+        except:
+            i += 1
+            folder_name = folder_name[:-1] + str(i)
+            
     shutil.copy(args.protein_root+'/'+args.protein_path, './new_data_temp/'+args.protein_path)
     shutil.copy(args.protein_root+'/'+args.ligand_path, './new_data_temp/'+args.ligand_path)
 

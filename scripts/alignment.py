@@ -65,15 +65,17 @@ if __name__ == '__main__':
 
     if alignment_iter == 1:
         ckpt_path = 'pretrained_models/uni_o2_bond.pt'
+    else:
+        raise Exception("Define new model checkpoint")
 
-    # Data collection
-    batch_size = 128
-    high_reward_dataset(batch_size, ckpt_path)
+    # # Data collection
+    # batch_size = 128
+    # high_reward_dataset(batch_size, ckpt_path)
     
-    # Pre-processing the Data
-    preprocessing_args = ["--dest", "./data/crossdocked_samples_processed"]
-    preprocess = subprocess.run(["python", "scripts/preprocess_new_data.py", "configs/preprocessing/crossdocked_samples.yml"] + preprocessing_args)
+    # # Pre-processing the Data
+    # preprocessing_args = ["--dest", "./data/crossdocked_samples_processed"]
+    # preprocess = subprocess.run(["python", "scripts/preprocess_new_data.py", "configs/preprocessing/crossdocked_samples.yml"] + preprocessing_args)
 
-    # # Training
-    # training_args = ["--alignment_iter", str(alignment_iter)]
-    # training = subprocess.run(["python", "scripts/train_aligned_decomp.py", "configs/alignment_training.yml"] + training_args)
+    # Training
+    training_args = ["--alignment_iter", str(alignment_iter)]
+    training = subprocess.run(["python", "scripts/train_aligned_decomp.py", "configs/alignment_training.yml"] + training_args)

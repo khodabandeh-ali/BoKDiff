@@ -207,16 +207,16 @@ if __name__ == '__main__':
         torch.save(testset_results, os.path.join(args.result_path, f'eval_all.pt'))
 
     qed = [x['chem_results']['qed'] for r in testset_results for x in r]
-    print('----qed:', qed)
+    # print('----qed:', qed)
     sa = [x['chem_results']['sa'] for r in testset_results for x in r]
-    print('----sa:', sa)
+    # print('----sa:', sa)
     num_atoms = [len(x['pred_pos']) for r in testset_results for x in r]
     logger.info('QED:   Mean: %.3f Median: %.3f' % (np.mean(qed), np.median(qed)))
     logger.info('SA:    Mean: %.3f Median: %.3f' % (np.mean(sa), np.median(sa)))
     logger.info('Num atoms:   Mean: %.3f Median: %.3f' % (np.mean(num_atoms), np.median(num_atoms)))
     if args.docking_mode in ['vina', 'qvina']:
         vina = [x['vina'][0]['affinity'] for r in testset_results for x in r]
-        print('----vina:', vina)
+        # print('----vina:', vina)
         logger.info('Vina:  Mean: %.3f Median: %.3f' % (np.mean(vina), np.median(vina)))
     elif args.docking_mode in ['vina_full', 'vina_score']:
         vina_score_only = [x['vina']['score_only'][0]['affinity'] for r in testset_results for x in r]

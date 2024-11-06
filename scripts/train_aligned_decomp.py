@@ -157,7 +157,9 @@ if __name__ == '__main__':
         ligand_atom_feature_dim=ligand_feature_dim,
         num_classes=ligand_featurizer.ligand_feature_dim,
         prior_atom_types=ligand_featurizer.atom_types_prob, prior_bond_types=ligand_featurizer.bond_types_prob
-    ).to(args.device)
+    )
+    model.load_state_dict(torch.load("/home/amirarsalan/Decompdiff/pretrained_models/uni_o2_bond.pt")["model"])
+    model.to(args.device)
     print(f'protein feature dim: {protein_feature_dim} '
           f'ligand feature dim: {ligand_feature_dim} ')
     logger.info(f'# trainable parameters: {misc.count_parameters(model) / 1e6:.4f} M')

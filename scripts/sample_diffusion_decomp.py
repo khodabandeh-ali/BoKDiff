@@ -505,6 +505,7 @@ if __name__ == '__main__':
     assert config.model.checkpoint or args.ckpt_path
     ckpt_path = args.ckpt_path if args.ckpt_path is not None else config.model.checkpoint
     ckpt = torch.load(ckpt_path, map_location=args.device)
+    ckpt_base = torch.load('./pretrained_models/uni_o2_bond.pt', map_location=args.device)
     if 'train_config' in config.model:
         logger.info(f"Load training config from: {config.model['train_config']}")
         ckpt['config'] = misc.load_config(config.model['train_config'])
@@ -559,10 +560,16 @@ if __name__ == '__main__':
 
     # data = pocket_pdb_to_pocket(index['data']['protein_file'])
     
-    dataset, subsets = get_decomp_dataset(
-        config=ckpt['config'].data,
-        transform=None,
-    )
+    try:
+        dataset, subsets = get_decomp_dataset(
+            config=ckpt['config'].data,
+            transform=None,
+        )
+    except:
+        dataset, subsets = get_decomp_dataset(
+            config=ckpt_base['config'].data,
+            transform=None,
+        )
     train_set, val_set = subsets['train'], subsets['test']
     data = val_set[args.data_id]
     # print(len(train_set)) #99165

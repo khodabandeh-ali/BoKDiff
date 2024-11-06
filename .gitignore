@@ -4,10 +4,17 @@ data/
 eval_temp/
 new_data_temp/
 outputs/
+pretrained_models/
 tmp/
+logs_alignment/
+aligned_ckpts/
+outputs_final_evals/
+final_evals/
+final_evals_history/
 
 # Ignore junk file
 junk.py
+nohup.out
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
