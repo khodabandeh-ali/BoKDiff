@@ -48,3 +48,28 @@ Model evaluation with 30 test instaces (seed=7): Al-iter1 (ratios:1,1,2)
 [2024-11-06 16:15:53,402::evaluate::INFO] ring size: 7 ratio: 0.246
 [2024-11-06 16:15:53,402::evaluate::INFO] ring size: 8 ratio: 0.027
 [2024-11-06 16:15:53,402::evaluate::INFO] ring size: 9 ratio: 0.015
+----------------------------------------------------------------------------------
+Model evaluation with 30 test instaces (seed=7): Al-iter2 (ratios:1,1,2)
+[2024-11-07 07:29:30,771::evaluate::INFO] QED:   Mean: 0.502 Median: 0.515
+[2024-11-07 07:29:30,772::evaluate::INFO] SA:    Mean: 0.646 Median: 0.630
+[2024-11-07 07:29:30,772::evaluate::INFO] Num atoms:   Mean: 20.176 Median: 21.000
+[2024-11-07 07:29:30,772::evaluate::INFO] Vina:  Mean: -7.024 Median: -7.165
+[2024-11-07 07:29:30,789::evaluate::INFO] JS pair distances: 
+[2024-11-07 07:29:30,789::evaluate::INFO] JSD_CC_2A:	0.3780
+[2024-11-07 07:29:30,789::evaluate::INFO] JSD_All_12A:	0.0951
+[2024-11-07 07:29:30,792::evaluate::INFO] JS bond distances: 
+[2024-11-07 07:29:30,792::evaluate::INFO] JSD_6-6|4:	0.4799
+[2024-11-07 07:29:30,792::evaluate::INFO] JSD_6-6|1:	0.3684
+[2024-11-07 07:29:30,792::evaluate::INFO] JSD_6-8|1:	0.3228
+[2024-11-07 07:29:30,792::evaluate::INFO] JSD_6-7|1:	0.2999
+[2024-11-07 07:29:30,792::evaluate::INFO] JSD_6-8|2:	0.3612
+[2024-11-07 07:29:30,792::evaluate::INFO] JSD_6-6|2:	0.4562
+[2024-11-07 07:29:30,792::evaluate::INFO] JSD_6-7|4:	0.3935
+[2024-11-07 07:29:30,792::evaluate::INFO] JSD_6-7|2:	0.5692
+[2024-11-07 07:29:30,792::evaluate::INFO] ring size: 3 ratio: 0.102
+[2024-11-07 07:29:30,792::evaluate::INFO] ring size: 4 ratio: 0.119
+[2024-11-07 07:29:30,792::evaluate::INFO] ring size: 5 ratio: 0.533
+[2024-11-07 07:29:30,793::evaluate::INFO] ring size: 6 ratio: 0.615
+[2024-11-07 07:29:30,793::evaluate::INFO] ring size: 7 ratio: 0.197
+[2024-11-07 07:29:30,793::evaluate::INFO] ring size: 8 ratio: 0.033
+[2024-11-07 07:29:30,793::evaluate::INFO] ring size: 9 ratio: 0.029

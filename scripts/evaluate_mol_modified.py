@@ -359,9 +359,11 @@ if __name__ == '__main__':
         except:
             i += 1
             folder_name = folder_name[:-1] + str(i)
-            
-    shutil.copy(args.protein_root+'/'+args.protein_path, './new_data_temp/'+args.protein_path)
-    shutil.copy(args.protein_root+'/'+args.ligand_path, './new_data_temp/'+args.ligand_path)
+    
+    protein_path_to_copy = './new_data_temp/'+folder_name+args.protein_path.split('/')[1]
+    ligand_path_to_copy = './new_data_temp/'+folder_name+args.ligand_path.split('/')[1]
+    shutil.copy(args.protein_root+'/'+args.protein_path, protein_path_to_copy)
+    shutil.copy(args.protein_root+'/'+args.ligand_path, ligand_path_to_copy)
 
     not_posed = './new_data_temp/'+folder_name+'/'+protein_name+'_generated.sdf'
     mol_to_sdf(best_mol, not_posed)

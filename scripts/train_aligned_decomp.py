@@ -71,10 +71,12 @@ if __name__ == '__main__':
     parser.add_argument('--logdir', type=str, default='./logs_alignment')
     parser.add_argument('--tag', type=str, default='')
     parser.add_argument('--alignment_iter', type=str, default='')
+    parser.add_argument('--load_ckpt', type=str, default='')
     parser.add_argument('--train_report_iter', type=int, default=200)
     args = parser.parse_args()
 
     alignment_iter = args.alignment_iter
+    load_ckpt = args.load_ckpt
 
     # Load configs
     config = misc.load_config(args.config)
@@ -158,7 +160,7 @@ if __name__ == '__main__':
         num_classes=ligand_featurizer.ligand_feature_dim,
         prior_atom_types=ligand_featurizer.atom_types_prob, prior_bond_types=ligand_featurizer.bond_types_prob
     )
-    model.load_state_dict(torch.load("/home/amirarsalan/Decompdiff/pretrained_models/uni_o2_bond.pt")["model"])
+    model.load_state_dict(torch.load(load_ckpt)["model"])
     model.to(args.device)
     print(f'protein feature dim: {protein_feature_dim} '
           f'ligand feature dim: {ligand_feature_dim} ')

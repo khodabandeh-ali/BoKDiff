@@ -66,7 +66,7 @@ if __name__ == '__main__':
     # Evaluation
     batch_size = 30
     # ckpt_path = './pretrained_models/uni_o2_bond.pt'
-    pre_ckpt = './pretrained_models/uni_o2_bond.pt'
+    pre_ckpt = './pretrained_models/al_inter2-chert.pt'
     ckpt_path = './pretrained_models/1000.pt'
     aggregate_eval(batch_size, ckpt_path, pre_ckpt)
 

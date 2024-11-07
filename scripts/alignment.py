@@ -82,6 +82,6 @@ if __name__ == '__main__':
     preprocessing_args = ["--dest", "./data/crossdocked_samples_processed"]
     preprocess = subprocess.run(["python", "scripts/preprocess_new_data.py", "configs/preprocessing/crossdocked_samples.yml"] + preprocessing_args)
 
-    # Training
-    # training_args = ["--alignment_iter", str(alignment_iter)]
+    # # Training
+    # training_args = ["--alignment_iter", str(alignment_iter), "--load_ckpt", ckpt_path]
     # training = subprocess.run(["python", "scripts/train_aligned_decomp.py", "configs/alignment_training.yml"] + training_args)
