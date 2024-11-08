@@ -287,7 +287,7 @@ def extract_subpockets(protein, pocket, method, **kwargs):
         pocket_lining_atoms = [atom for atom in kwargs['mdtraj_protein'].atom_slice(pocket.lining_atoms_idx).top.atoms]
         pocket_atom_serial = [atom.serial for atom in pocket_lining_atoms]
         # pocket_res_idx = [atom.residue.resSeq for atom in pocket_lining_atoms]
-
+        
         selected_atom_serial, selected_residues = [], []
         sel_idx = set()
         for atom in protein.atoms:
@@ -299,7 +299,8 @@ def extract_subpockets(protein, pocket, method, **kwargs):
             if res['chain_res_id'] in sel_idx:
                 selected_residues.append(res)
                 selected_atom_serial += [protein.atoms[a_idx]['atom_id'] for a_idx in res['atoms']]
-
+        min = 9
+        
     elif method == 'v2':
         # Method 2: alpha atom --> sphere with a large radius
         centers = [a.centroid for a in pocket.alphas]

@@ -65,7 +65,7 @@ def high_reward_dataset(batch_size, ckpt_path):
 
 
 if __name__ == '__main__':
-    alignment_iter = 2
+    alignment_iter = 3
     random.seed(alignment_iter + 94)
 
     if alignment_iter == 1:

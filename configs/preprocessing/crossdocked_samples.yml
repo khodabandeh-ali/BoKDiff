@@ -13,5 +13,6 @@ pocket:
 #  protein_ext_method: v1
 #  protein_radius: 6
   protein_ext_method: submol_radius
+  # protein_ext_method: v1
   protein_radius: 10
 

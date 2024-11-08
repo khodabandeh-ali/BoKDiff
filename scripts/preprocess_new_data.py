@@ -108,7 +108,7 @@ def extract_subcomplex(config, protein_path, ligand_sdf_path,
         while len(pocket_list) == 0:
             min_dist = ss.run(receptor=receptor, binder=binder, cutoff=iterator_cutoff)
             pocket_list = [p for p in sorted(ss.pockets, key=lambda i: i.nonpolar_space, reverse=True) if p.isContact]
-            iterator_cutoff = min_dist + 0.2
+            iterator_cutoff = min_dist + 0.1
     except:
         raise AlphaSpaceError
 
@@ -156,7 +156,7 @@ def extract_subcomplex(config, protein_path, ligand_sdf_path,
                 submol=all_submols[i],
                 mdtraj_protein=receptor, protein_radius=current_radius,
             )
-            current_radius = min_rad + 10
+            current_radius = min_rad + 1
 
         all_pocket_atom_serial.append(selected_atom_serial)
         all_pocket_residues.append(selected_residues)
@@ -193,7 +193,7 @@ def extract_subcomplex(config, protein_path, ligand_sdf_path,
         w.close()
         if config.pocket.protein_ext_method == 'submol_radius':
             _, union_residues, min_rad = protein.query_residues_centers(rdmol.GetConformer(0).GetPositions(),
-                                                               current_radius)
+                                                               config.pocket.protein_radius)
         else:
             union_residues = union_pocket_residues(all_pocket_residues)
         pdb_block_pocket = protein.residues_to_pdb_block(union_residues)
