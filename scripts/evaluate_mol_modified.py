@@ -5,6 +5,7 @@
 import argparse
 import os
 import shutil
+import pickle
 
 import numpy as np
 from rdkit import RDLogger
@@ -62,6 +63,7 @@ def get_pose_sdf(pdb_file = "docked_pose.pdb", sdf_file = "final_docked_pose.sdf
     # Load the PDB file
     pdb_file2 = "cleaned_docked_pose.pdb"
     mol = next(pybel.readfile("pdb", pdb_file2))
+
 
     # Save the modified docked pose to SDF format
     mol.write("sdf", sdf_file, overwrite=True)
@@ -344,10 +346,23 @@ if __name__ == '__main__':
     # print(qed)
     # print(sa)
     # print(vina)
+    # print('scaled')
+    # print(vina_scaled)
+    # print('rewards')
+    # print(max_reward_index)
     # print(reward)
+    # with open("mols.pkl", "wb") as f:
+    #     pickle.dump(mols, f)
+    # with open("best_mol.pkl", "wb") as b:
+    #     pickle.dump(best_mol, b)
+    # with open("mol_pose.pkl", "wb") as p:
+    #     pickle.dump(best_mol_pose, p)
+    
+
 
     os.makedirs('./new_data_temp', exist_ok=True)
     folder_name = args.protein_path.split('/')[0]
+    print(folder_name)
     protein_name = args.protein_path.split('/')[1].split('.')[0]
 
     i = 0

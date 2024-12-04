@@ -18,8 +18,8 @@ import random
 
 
 def aggregate_eval(batch_size, ckpt_path, pre_ckpt):
-    fixed_seed = 7
-    random.seed(fixed_seed)
+    # fixed_seed = 7
+    # random.seed(fixed_seed)
 
     # Delete previously created files and data
     outdir_filename = './outputs_final_evals'
@@ -39,8 +39,9 @@ def aggregate_eval(batch_size, ckpt_path, pre_ckpt):
 
 
     # Sample a batch for generating new dataset
-    indices = random.sample(range(0, 100), batch_size)
-    print(indices)
+    # indices = random.sample(range(0, 100), batch_size)
+    indices = [i for i in range(0, 100)]
+    # print(indices)
 
     i = 0
     for data_index in indices:
@@ -50,13 +51,13 @@ def aggregate_eval(batch_size, ckpt_path, pre_ckpt):
         # Generating 10 samples for each index
         sampling_args = ["--ckpt_path", ckpt_path, "--outdir", outdir_filename, "-i", str(data_index), "--prior_mode", "ref_prior"]
         sampling = subprocess.run(["python", "scripts/sample_diffusion_decomp.py", "configs/sampling_drift.yml"] + sampling_args)
-        
+
         end_time = time.time()
         duration = end_time - start_time
         print(f'-------------------------- data: {i} | index: {data_index} | duration: {duration:.0f} (s) -------------------------')
 
     # Evaluating the result in an aggregated manner
-    evaluation_args = ["--docking_mode", "vina", "--aggregate_meta", "True", "--result_path", result_path]
+    evaluation_args = ["--docking_mode", "vina_full", "--aggregate_meta", "True", "--result_path", result_path]
     data_points = subprocess.run(["python", "scripts/evaluate_mol_from_meta_full.py", outdir_filename] + evaluation_args)
 
 
@@ -64,10 +65,10 @@ if __name__ == '__main__':
     start_time_g = time.time()
 
     # Evaluation
-    batch_size = 30
+    batch_size = 100
     # ckpt_path = './pretrained_models/uni_o2_bond.pt'
-    pre_ckpt = './pretrained_models/al_inter2-chert-W-radius.pt'
-    ckpt_path = './pretrained_models/1000.pt'
+    pre_ckpt = './pretrained_models/ref_vina_full_NoSeed.pt'
+    ckpt_path = './pretrained_models/al_qed_iter1.pt'
     aggregate_eval(batch_size, ckpt_path, pre_ckpt)
 
     end_time_g = time.time()

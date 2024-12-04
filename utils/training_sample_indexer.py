@@ -45,5 +45,5 @@ with open("./data/train_index.pkl", "wb") as f:
 with open("./data/train_index.pkl", "rb") as f:
     loaded_list = pickle.load(f)
 
-print(loaded_list[0])
-print(len(loaded_list))
+# print(loaded_list[0])
+# print(len(loaded_list))

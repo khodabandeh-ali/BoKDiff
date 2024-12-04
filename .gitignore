@@ -11,6 +11,7 @@ aligned_ckpts/
 outputs_final_evals/
 final_evals/
 final_evals_history/
+pregen_info/
 
 # Ignore junk file
 junk.py

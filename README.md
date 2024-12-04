@@ -1,6 +1,4 @@
-# DecompDiff: Diffusion Models with Decomposed Priors for Structure-Based Drug Design
-
-This repository is the official implementation of _DecompDiff: Diffusion Models with Decomposed Priors for Structure-Based Drug Design._
+# BoKDiff: Best-of-K diffusion Alignment for Enhancing 3D Molecule Generation
 
 
 ## Dependencies
@@ -27,7 +25,63 @@ In vina package, modify vina.py and change np.int to np.int32
 In alphaspace2 package, modify Snapshot.py and change np.float to np.float64 (line 145)
 In alphaspace2 package, modify functions.py and change np.bool to np.bool_ (line 449)
 ```
+# BoKdiff Scripts
+## Data indexing
+```bash
+python utils/training_sample_indexer.py
+```
+You can download the dataset ("crossdocked_v1.1_rmsd1.0.tar.gz") [here](https://drive.google.com/drive/folders/1j21cc7-97TedKh_El5E34yI8o5ckI7eK).
 
+## Data Collection, Ranking, and Fine Tuning
+```bash
+python scripts/alignment.py
+```
+This script will be using these modified files:
+- scripts/sample_modified.py
+- scripts/evaluate_mol_modified.py
+- scripts/preprocess_new_data.py
+- scripts/train_aligned_decomp.py
+
+For any desired adjustment, change the following parameters:
+### Weight configurations:
+``` python
+evaluation_args = ["--docking_mode", "vina", "--aggregate_meta", "True", "--result_path", "./eval_temp",
+"--protein_path", protein_src_file, "--ligand_path", ligand_src_file, "--weights", "1,0,0"] #qed,sa,vina
+```
+### Alignment iteration:
+Add the trained model to the 'pretrained_models' folder and modify:
+```python
+alignment_iter = 1
+random.seed(alignment_iter + 94) #94
+
+if alignment_iter == 1:
+    ckpt_path = 'pretrained_models/uni_o2_bond.pt'
+else:
+    ckpt_name = 'al_qed_iter' + str(alignment_iter-1) + '.pt'
+    ckpt_path = 'pretrained_models/' + ckpt_name
+```
+### Batch Size:
+``` python
+# Data collection
+batch_size = 128
+```
+## Model evaluation
+The following script will generate samples based on the test set and evaluate them. You can reduce the 'batch size' from 100 to any smaller number.
+```bash
+python scripts/final_eval.py
+```
+## BoKdiff version 2 - Data relocating based on the Reference Ligand center of Mass
+```bash
+python scripts/alignment_v2.py
+```
+This script will be using these modified files:
+- scripts/sample_modified.py
+- scripts/evaluate_mol_modified_v2.py
+- scripts/preprocess_new_data_v2.py
+- scripts/train_aligned_decomp.py
+
+
+# Decompdiff Scripts
 ## Preprocess 
 ```bash
 python scripts/data/preparation/preprocess_subcomplex.py configs/preprocessing/crossdocked.yml
@@ -45,12 +99,6 @@ To sample molecules given protein pockets in the test set, you need to download 
 ```bash
 python scripts/sample_diffusion_decomp.py configs/sampling_drift.yml  \
   --outdir $SAMPLE_OUT_DIR -i $DATA_ID --prior_mode {ref_prior, beta_prior}
-
-  python scripts/sample_diffusion_decomp.py configs/sampling_drift.yml  \
-  --outdir ./outputs -i 1 --prior_mode ref_prior
-
-  python scripts/sample_modified.py configs/sampling_drift.yml  \
-  --outdir ./out_temp -i 1 --prior_mode ref_prior
 ```
 We have provided the trained model checkpoint [here](https://drive.google.com/drive/folders/1JAB5pp25rEM5Wt-i373_rrAyTsLvAACZ?usp=share_link).
 
@@ -59,13 +107,8 @@ If you want to sample molecules with beta priors, you also need to download file
 ## Evaluation
 ```bash
 python scripts/evaluate_mol_from_meta_full.py $SAMPLE_OUT_DIR \
-  --docking_mode {none, vina_score, vina_full} \
+  --docking_mode {vina, vina_full} \
   --aggregate_meta True --result_path $EVAL_OUT_DIR
-
-
-  python scripts/evaluate_mol_from_meta_full.py ./outputs \
-  --docking_mode vina \
-  --aggregate_meta True --result_path ./evals
 ```
 
 ### Alphaspace2 modifications
@@ -121,58 +164,7 @@ def _markInRange2(query_points, ref_points, cutoff):
     query_bool[indices] = 1
     return query_bool, min_dist
 ```
-### Continue running when ssh closes
+<!-- ### Continue running when ssh closes
 nohup python ./scripts/alignment.py &
-nohup python ./scripts/final_eval.py &
+nohup python ./scripts/final_eval.py & -->
 
-## Results
-- JSD of bond distances
-
-| Bond | liGAN | GraphBP | AR    | Pocket2Mol | TargetDiff | Ours      |
-|------|-------|---------|-------|------------|------------|-----------|
-| C-C  | 0.601 | 0.368   | 0.609 | 0.496      | 0.369      | **0.359** |
-| C=C  | 0.665 | 0.530   | 0.620 | 0.561      | **0.505**  | 0.537     |
-| C-N  | 0.634 | 0.456   | 0.474 | 0.416      | 0.363      | **0.344** |
-| C=N  | 0.749 | 0.693   | 0.635 | 0.629      | **0.550**  | 0.584     |
-| C-O  | 0.656 | 0.467   | 0.492 | 0.454      | 0.421      | **0.376** |
-| C=O  | 0.661 | 0.471   | 0.558 | 0.516      | 0.461      | **0.374** |
-| C:C  | 0.497 | 0.407   | 0.451 | 0.416      | 0.263      | **0.251** |
-| C:N  | 0.638 | 0.689   | 0.552 | 0.487      | **0.235**  | 0.269     |
-
-
-- JSD of bond angles
-
-| Angle | liGAN | GraphBP | AR    | Pocket2Mol | TargetDiff | Ours      |
-|-------|-------|---------|-------|------------|------------|-----------|
-| CCC   | 0.598 | 0.424   | 0.340 | 0.323      | 0.328      | **0.314** |
-| CCO   | 0.637 | 0.354   | 0.442 | 0.401      | 0.385      | **0.324** |
-| CNC   | 0.604 | 0.469   | 0.419 | **0.237**  | 0.367      | 0.297     |
-| OPO   | 0.512 | 0.684   | 0.367 | 0.274      | 0.303      | **0.217** |
-| NCC   | 0.621 | 0.372   | 0.392 | 0.351      | 0.354      | **0.294** |
-| CC=O  | 0.636 | 0.377   | 0.476 | 0.353      | 0.356      | **0.259** |
-| COC   | 0.606 | 0.482   | 0.459 | **0.317**  | 0.389      | 0.339     |
-
-- Main results
-
-
-| Methods    | Vina Score (&darr;) | Vina Min (&darr;) | Vina Dock (&darr;) | High Affinity (&uarr;) | QED (&uarr;) | SA (&uarr;) | Success Rate (&uarr;) |
-|------------|---------------------|-------------------|--------------------|------------------------|--------------|-------------|-----------------------|
-| Reference  | -6.46               | -6.49             | -7.26              | -                      | 0.47         | 0.74        | 25.0%                 |
-| liGAN      | -                   | -                 | -6.20              | 11.1%                  | 0.39         | 0.57        | 3.9%                  |
-| GraphBP    | -                   | -                 | -4.70              | 6.7%                   | 0.45         | 0.48        | 0.1%                  |
-| AR         | -5.64               | -5.88             | -6.62              | 31.0%                  | 0.50         | 0.63        | 7.1%                  |
-| Pocket2Mol | -4.70               | -5.82             | -6.79              | 51.0%                  | 0.57         | 0.75        | 24.4%                 |
-| TargetDiff | -6.30               | -6.83             | -7.91              | 59.1%                  | 0.48         | 0.58        | 10.5%                 |
-| Ours       | -6.04               | **-7.09**         | **-8.43**          | **71.0%**              | 0.43         | 0.60        | **24.5%**             |
-
-
-## Security
-
-If you discover a potential security issue in this project, or think you may
-have discovered a security issue, we ask that you notify Bytedance Security via our [security center](https://security.bytedance.com/src) or [vulnerability reporting email](sec@bytedance.com).
-
-Please do **not** create a public GitHub issue.
-
-## License
-
-This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International Public License](LICENSE).

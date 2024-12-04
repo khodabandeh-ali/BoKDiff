@@ -4,6 +4,7 @@
 
 import argparse
 import os
+import shutil
 
 import numpy as np
 from rdkit import RDLogger
@@ -28,6 +29,8 @@ from utils.transforms import get_atomic_number_from_index
 import utils.transforms as trans
 from rdkit import Chem
 from utils.reconstruct import reconstruct_from_generated_with_bond
+from openbabel import pybel
+from openbabel import openbabel as ob
 
 def mol_to_sdf(mol, file_path):
     """
@@ -42,6 +45,126 @@ def mol_to_sdf(mol, file_path):
     with open(file_path, 'w') as f:
         f.write(sdf_string)
         f.write('$$$$\n')  # SDF file separator
+
+
+# Function to clean and write the PDB file without Vina metadata lines
+def clean_pdb(input_pdb, output_pdb):
+    with open(input_pdb, 'r') as infile, open(output_pdb, 'w') as outfile:
+        for line in infile:
+            # Exclude non-atom metadata lines
+            if line.startswith("ATOM") or line.startswith("HETATM"):
+                outfile.write(line)
+
+def get_pose_sdf(pdb_file = "docked_pose.pdb", sdf_file = "final_docked_pose.sdf"):
+    # Clean the PDB file
+    clean_pdb(pdb_file, "cleaned_docked_pose.pdb")
+
+    # Load the PDB file
+    pdb_file2 = "cleaned_docked_pose.pdb"
+    mol = next(pybel.readfile("pdb", pdb_file2))
+
+    # Save the modified docked pose to SDF format
+    mol.write("sdf", sdf_file, overwrite=True)
+
+    if os.path.exists(pdb_file):
+        os.remove(pdb_file)
+
+    if os.path.exists("cleaned_docked_pose.pdb"):
+        os.remove("cleaned_docked_pose.pdb")
+
+
+def transform_to_original(original_sdf, docked_sdf, aligned_sdf):
+    # Load the original ligand and docked ligand
+    original_ligand = Chem.MolFromMolFile(original_sdf, removeHs=False)
+    docked_ligand = Chem.MolFromMolFile(docked_sdf, removeHs=False)
+
+    # Ensure both ligands are loaded correctly
+    if original_ligand is None or docked_ligand is None:
+        raise ValueError("Failed to load one of the ligand structures.")
+
+    # # Remove standalone hydrogens in both molecules
+    # def remove_dangling_hydrogens(mol):
+    #     """Remove hydrogens without neighbors."""
+    #     atoms_to_remove = []
+    #     for atom in mol.GetAtoms():
+    #         if atom.GetAtomicNum() == 1 and atom.GetDegree() == 0:
+    #             atoms_to_remove.append(atom.GetIdx())
+    #     mol = Chem.RWMol(mol)
+    #     for idx in reversed(atoms_to_remove):  # Remove from end to maintain indexing
+    #         mol.RemoveAtom(idx)
+    #     return mol
+
+    # docked_ligand = remove_dangling_hydrogens(docked_ligand)
+    # docked_ligand = Chem.RemoveHs(docked_ligand)
+
+    # # Create a mapping of original ligand atom indices to docked ligand atom indices
+    # original_atom_indices = {atom.GetIdx(): atom.GetAtomicNum() for atom in original_ligand.GetAtoms()}
+    # docked_atom_indices = {atom.GetIdx(): atom.GetSymbol() for atom in docked_ligand.GetAtoms()}
+
+    # # This dictionary will hold the replacements
+    # replacement_mapping = {}
+
+    # for docked_idx, docked_symbol in docked_atom_indices.items():
+    #     if docked_symbol == '*':
+    #         # Find the closest corresponding atom in the original ligand
+    #         # You may need to implement a logic here to find the best match
+    #         # For simplicity, let's assume we're replacing with a Carbon atom for demonstration
+    #         if docked_idx in original_atom_indices:
+    #             replacement_mapping[docked_idx] = original_atom_indices[docked_idx]
+
+    # for atom in docked_ligand.GetAtoms():
+    #     if atom.GetSymbol() == '*':
+    #         # Get the index of the current docked atom
+    #         docked_idx = atom.GetIdx()
+    #         # Replace `*` with the corresponding atom type from the original ligand
+    #         if docked_idx in replacement_mapping:
+    #             # Set the atomic number based on the atom type from the mapping
+    #             atom.SetAtomicNum(replacement_mapping[docked_idx])
+
+    # if original_ligand.GetNumAtoms() != docked_ligand.GetNumAtoms():
+    #     print(original_ligand.GetNumAtoms())
+    #     print(docked_ligand.GetNumAtoms())
+    #     raise ValueError("Atom count mismatch after adding hydrogens.")
+
+    # Get conformers for transformation
+    conf_orig = original_ligand.GetConformer()
+    conf_dock = docked_ligand.GetConformer()
+
+    # Calculate centroids
+    def calculate_centroid(conf, mol):
+        return np.mean([np.array(conf.GetAtomPosition(i)) for i in range(mol.GetNumAtoms())], axis=0)
+
+    centroid_orig = calculate_centroid(conf_orig, original_ligand)
+    centroid_dock = calculate_centroid(conf_dock, docked_ligand)
+
+    # Center molecules on origin
+    for i in range(original_ligand.GetNumAtoms()):
+        pos = conf_orig.GetAtomPosition(i)
+        conf_orig.SetAtomPosition(i, pos - centroid_orig)
+    for i in range(docked_ligand.GetNumAtoms()):
+        pos = conf_dock.GetAtomPosition(i)
+        conf_dock.SetAtomPosition(i, pos - centroid_dock)
+
+    # Translate original ligand to docked centroid
+    for i in range(original_ligand.GetNumAtoms()):
+        pos = conf_orig.GetAtomPosition(i)
+        conf_orig.SetAtomPosition(i, pos + centroid_dock)
+
+    # Save the aligned ligand
+    Chem.MolToMolFile(original_ligand, aligned_sdf)
+
+
+def min_max_scaler(values):
+    min_value = min(values)
+    max_value = max(values)
+
+    # Scale the values using Min-Max scaling
+    try:
+        scaled_values = [(x - min_value) / (max_value - min_value) for x in values]
+    except:
+        scaled_values = [0 for x in values]
+    
+    return scaled_values
 
 
 def print_dict(d, logger):
@@ -67,7 +190,6 @@ def eval_single_datapoint(index, id, args):
         index = [index]
 
     ligand_filename = index[0]['ligand_filename']
-    print(ligand_filename)
     num_samples = len(index[:100])
     results = []
     n_eval_success = 0
@@ -83,16 +205,12 @@ def eval_single_datapoint(index, id, args):
                     bond_type=sample_dict['pred_bond_type']
                 )
                 smiles = Chem.MolToSmiles(mol)
-                sdf_file_name = './sdf_files/sample'+str(sample_idx)+'.sdf'
-                mol_to_sdf(mol, sdf_file_name)
             except:
                 logger.warning('Reconstruct failed %s' % f'{sample_idx}')
                 mol, smiles = None, None
         else:
             mol = sample_dict['mol']
             smiles = sample_dict['smiles']
-            sdf_file_name = './sdf_files/sample'+str(sample_idx)+'.sdf'
-            # mol_to_sdf(mol, sdf_file_name)
 
         if mol is None or '.' in smiles:
             continue
@@ -144,7 +262,8 @@ def eval_single_datapoint(index, id, args):
         results.append({
             **sample_dict,
             'chem_results': chem_results,
-            'vina': vina_results
+            'vina': vina_results,
+            'mols': mol
         })
     logger.info(f'Evaluate No {id} done! {num_samples} samples in total. {n_eval_success} eval success!')
     if args.result_path:
@@ -157,13 +276,16 @@ if __name__ == '__main__':
     parser.add_argument('meta_file', type=str)  # 'baselines/results/pocket2mol_pre_dock.pt'
     parser.add_argument('-n', '--eval_num_examples', type=int, default=100)
     parser.add_argument('--verbose', type=eval, default=False)
-    parser.add_argument('--protein_root', type=str, default='./data/test_set')
+    parser.add_argument('--protein_root', type=str, default='./data/train_set')
     parser.add_argument('--docking_mode', type=str, default='vina_full',
                         choices=['none', 'qvina', 'vina', 'vina_full', 'vina_score'])
     parser.add_argument('--exhaustiveness', type=int, default=32)
     parser.add_argument('--num_workers', type=int, default=4)
     parser.add_argument('--result_path', type=str)
     parser.add_argument('--aggregate_meta', type=eval, default=False)
+    parser.add_argument('--protein_path', type=str)
+    parser.add_argument('--ligand_path', type=str)
+    parser.add_argument('--weights', type=str)
     args = parser.parse_args()
 
     # result_path = os.path.join(os.path.dirname(args.meta_file), f'eval_results_docking_{args.docking_mode}')
@@ -206,67 +328,51 @@ if __name__ == '__main__':
     if args.result_path:
         torch.save(testset_results, os.path.join(args.result_path, f'eval_all.pt'))
 
-    if args.docking_mode in ['vina', 'qvina']:
-        qed = [x['chem_results']['qed'] for r in testset_results for x in r]
-        sa = [x['chem_results']['sa'] for r in testset_results for x in r]
-        num_atoms = [len(x['pred_pos']) for r in testset_results for x in r]
-        logger.info('QED:   Mean: %.3f Median: %.3f' % (np.mean(qed), np.median(qed)))
-        logger.info('SA:    Mean: %.3f Median: %.3f' % (np.mean(sa), np.median(sa)))
-        logger.info('Num atoms:   Mean: %.3f Median: %.3f' % (np.mean(num_atoms), np.median(num_atoms)))
-        vina = [x['vina'][0]['affinity'] for r in testset_results for x in r]
-        logger.info('Vina:  Mean: %.3f Median: %.3f' % (np.mean(vina), np.median(vina)))
-    elif args.docking_mode in ['vina_score']:
-        qed = [x['chem_results']['qed'] for r in testset_results for x in r]
-        sa = [x['chem_results']['sa'] for r in testset_results for x in r]
-        num_atoms = [len(x['pred_pos']) for r in testset_results for x in r]
-        logger.info('QED:   Mean: %.3f Median: %.3f' % (np.mean(qed), np.median(qed)))
-        logger.info('SA:    Mean: %.3f Median: %.3f' % (np.mean(sa), np.median(sa)))
-        logger.info('Num atoms:   Mean: %.3f Median: %.3f' % (np.mean(num_atoms), np.median(num_atoms)))
-        vina_score_only = [x['vina']['score_only'][0]['affinity'] for r in testset_results for x in r]
-        vina_min = [x['vina']['minimize'][0]['affinity'] for r in testset_results for x in r]
-        logger.info('Vina Score:  Mean: %.3f Median: %.3f' % (np.mean(vina_score_only), np.median(vina_score_only)))
-        logger.info('Vina Min  :  Mean: %.3f Median: %.3f' % (np.mean(vina_min), np.median(vina_min)))
-    elif args.docking_mode == 'vina_full':
-        num_atoms = [len(x['pred_pos']) for r in testset_results for x in r]
-        c, t, total = 0, 0, 0
-        q, s, vm, vs, vd = [], [], [], [], []
-        for r in testset_results:
-            f = False
-            qed = [x['chem_results']['qed'] for x in r]
-            sa = [x['chem_results']['sa'] for x in r]
-            vina_dock = [x['vina']['dock'][0]['affinity'] for x in r]
-            vina_score_only = [x['vina']['score_only'][0]['affinity'] for x in r]
-            vina_min = [x['vina']['minimize'][0]['affinity'] for x in r]
-            for i in range(len(qed)):
-                if vina_min[i] < -6:
-                    f = True
-                    q.append(qed[i])
-                    s.append(sa[i])
-                    vm.append(vina_min[i])
-                    vs.append(vina_score_only[i])
-                    vd.append(vina_dock[i])
-                    total += 1
-                    if qed[i] > 0.25 and sa[i] > 0.59 and vina_dock[i] < -8.18:
-                        c += 1
-            if f:
-                t += 1
-        logger.info('QED:   Mean: %.3f Median: %.3f' % (np.mean(q), np.median(q)))
-        logger.info('SA:    Mean: %.3f Median: %.3f' % (np.mean(s), np.median(s)))
-        logger.info('Num atoms:   Mean: %.3f Median: %.3f' % (np.mean(num_atoms), np.median(num_atoms)))
-        logger.info('Vina Score:  Mean: %.3f Median: %.3f' % (np.mean(vs), np.median(vs)))
-        logger.info('Vina Min  :  Mean: %.3f Median: %.3f' % (np.mean(vm), np.median(vm)))
-        logger.info('Vina Dock :  Mean: %.3f Median: %.3f' % (np.mean(vd), np.median(vd)))
-        success_rate = c / total * 100
-        logger.info('Success Rate :  %.3f' % (success_rate))
+    qed = [x['chem_results']['qed'] for r in testset_results for x in r]
+    sa = [x['chem_results']['sa'] for r in testset_results for x in r]
+    vina = [x['vina'][0]['affinity'] for r in testset_results for x in r]
+    vina_poses = [x['vina'][0]['pose'] for r in testset_results for x in r]
+    vina_scaled = min_max_scaler(vina)
+    mols = [x['mols'] for r in testset_results for x in r]
 
-    pair_length_profile = eval_bond_length.get_pair_length_profile(testset_pair_dist)
-    js_metrics = eval_bond_length.eval_pair_length_profile(pair_length_profile)
-    logger.info('JS pair distances: ')
-    print_dict(js_metrics, logger)
+    weights = args.weights.split(',')
+    w = [int(item) for item in weights]
+    reward = [w[0] * q + w[1] * s - w[2] * v for q, s, v in zip(qed, sa, vina_scaled)]
+    max_reward_index = reward.index(max(reward))
+    best_mol = mols[max_reward_index]
+    # best_mol_pose = vina_poses[max_reward_index]
+    # print(qed)
+    # print(sa)
+    # print(vina)
+    # print(reward)
 
-    c_bond_length_profile = eval_bond_length.get_bond_length_profile(testset_bond_dist)
-    c_bond_length_dict = eval_bond_length.eval_bond_length_profile(c_bond_length_profile)
-    logger.info('JS bond distances: ')
-    print_dict(c_bond_length_dict, logger)
+    os.makedirs('./new_data_temp', exist_ok=True)
+    folder_name = args.protein_path.split('/')[0]
+    protein_name = args.protein_path.split('/')[1].split('.')[0]
 
-    print_ring_ratio([x['chem_results']['ring_size'] for r in testset_results for x in r], logger)
+    i = 0
+    flag = False
+    while not flag:
+        try:
+            os.makedirs('./new_data_temp/'+folder_name)
+            flag = True
+        except:
+            i += 1
+            folder_name = folder_name[:-1] + str(i)
+    
+    protein_path_to_copy = './new_data_temp/'+folder_name+'/'+args.protein_path.split('/')[1]
+    ligand_path_to_copy = './new_data_temp/'+folder_name+'/'+args.ligand_path.split('/')[1]
+    shutil.copy(args.protein_root+'/'+args.protein_path, protein_path_to_copy)
+    shutil.copy(args.protein_root+'/'+args.ligand_path, ligand_path_to_copy)
+
+    not_posed = './new_data_temp/'+folder_name+'/'+protein_name+'_generated.sdf'
+    mol_to_sdf(best_mol, not_posed)
+
+    # with open("docked_pose.pdb", "w") as pdb_file:
+    #     pdb_file.write(best_mol_pose)
+
+    # posed_sdf = './new_data_temp/'+folder_name+'/'+protein_name+'_generated_docked.sdf'
+    # # Convert the PDB file to SDF using Openbabel
+    # get_pose_sdf(pdb_file = "docked_pose.pdb", sdf_file = posed_sdf)
+    aligned_sdf = './new_data_temp/'+folder_name+'/'+protein_name+'_generated_aligned.sdf'
+    transform_to_original(not_posed, ligand_path_to_copy, aligned_sdf)

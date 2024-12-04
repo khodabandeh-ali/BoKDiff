@@ -57,30 +57,29 @@ def high_reward_dataset(batch_size, ckpt_path):
         ligand_src_file = train_index[data_index]['src_ligand_filename']
         evaluation_args = ["--docking_mode", "vina", "--aggregate_meta", "True", "--result_path", "./eval_temp",
         "--protein_path", protein_src_file, "--ligand_path", ligand_src_file, "--weights", "1,0,0"] #qed,sa,vina
-        data_points = subprocess.run(["python", "scripts/evaluate_mol_modified.py", outdir_filename] + evaluation_args)
+        data_points = subprocess.run(["python", "scripts/evaluate_mol_modified_v2.py", outdir_filename] + evaluation_args)
 
         end_time = time.time()
         duration = end_time - start_time
         print(f'-------------------------- data: {i} | index: {data_index} | duration: {duration:.0f} (s) -------------------------')
 
-
 if __name__ == '__main__':
     alignment_iter = 1
-    random.seed(alignment_iter + 94) #94
+    random.seed(alignment_iter + 94)
 
     if alignment_iter == 1:
         ckpt_path = 'pretrained_models/uni_o2_bond.pt'
     else:
-        ckpt_name = 'al_qed_iter' + str(alignment_iter-1) + '.pt'
+        ckpt_name = 'al_v2_iter' + str(alignment_iter-1) + '.pt'
         ckpt_path = 'pretrained_models/' + ckpt_name
 
-    # Data collection
-    batch_size = 128
-    high_reward_dataset(batch_size, ckpt_path)
+    # # Data collection
+    # batch_size = 128
+    # high_reward_dataset(batch_size, ckpt_path)
     
-    # Pre-processing the Data
-    preprocessing_args = ["--dest", "./data/crossdocked_samples_processed"]
-    preprocess = subprocess.run(["python", "scripts/preprocess_new_data.py", "configs/preprocessing/crossdocked_samples.yml"] + preprocessing_args)
+    # # Pre-processing the Data
+    # preprocessing_args = ["--dest", "./data/crossdocked_samples_processed"]
+    # preprocess = subprocess.run(["python", "scripts/preprocess_new_data_v2.py", "configs/preprocessing/crossdocked_samples.yml"] + preprocessing_args)
 
     # Training
     training_args = ["--alignment_iter", str(alignment_iter), "--load_ckpt", ckpt_path]
