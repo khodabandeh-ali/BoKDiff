@@ -38,6 +38,8 @@ You also need to download data files from [here](https://drive.google.com/drive/
 ```bash
 python scripts/alignment.py
 ```
+You can find Decompdiff trained model checkpoint [here](https://drive.google.com/drive/folders/1JAB5pp25rEM5Wt-i373_rrAyTsLvAACZ?usp=share_link), and best BoKdiff trained model checkpoint [here](https://drive.google.com/drive/folders/1VnZk7ued05GG6COm8LlbjkX519M3QGNo?usp=share_link).
+
 This script will be using these modified files:
 - scripts/sample_modified.py
 - scripts/evaluate_mol_modified.py
