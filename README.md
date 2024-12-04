@@ -32,6 +32,8 @@ python utils/training_sample_indexer.py
 ```
 You can download the dataset ("crossdocked_v1.1_rmsd1.0.tar.gz") [here](https://drive.google.com/drive/folders/1j21cc7-97TedKh_El5E34yI8o5ckI7eK).
 
+You also need to download data files from [here](https://drive.google.com/drive/folders/1z74dKcDKQbwpo8Uf8EJpGi12T4GCD8_Z), and put them in the ./data folder for evaluation and running the following steps.
+
 ## Data Collection, Ranking, and Fine Tuning
 ```bash
 python scripts/alignment.py
