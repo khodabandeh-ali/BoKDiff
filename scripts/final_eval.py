@@ -58,7 +58,8 @@ def aggregate_eval(batch_size, ckpt_path, pre_ckpt):
 
     # Evaluating the result in an aggregated manner
     evaluation_args = ["--docking_mode", "vina_full", "--aggregate_meta", "True", "--result_path", result_path]
-    data_points = subprocess.run(["python", "scripts/evaluate_mol_from_meta_full.py", outdir_filename] + evaluation_args)
+    # data_points = subprocess.run(["python", "scripts/evaluate_mol_from_meta_full.py", outdir_filename] + evaluation_args)
+    data_points = subprocess.run(["python", "scripts/evaluate_mol_from_meta_BoN.py", outdir_filename] + evaluation_args)
 
 
 if __name__ == '__main__':
@@ -67,8 +68,8 @@ if __name__ == '__main__':
     # Evaluation
     batch_size = 100
     # ckpt_path = './pretrained_models/uni_o2_bond.pt'
-    pre_ckpt = './pretrained_models/ref_vina_full_NoSeed.pt'
-    ckpt_path = './pretrained_models/al_qed_iter1.pt'
+    pre_ckpt = './pretrained_models/ignore.pt'
+    ckpt_path = './pretrained_models/al_vina_iter1.pt'
     aggregate_eval(batch_size, ckpt_path, pre_ckpt)
 
     end_time_g = time.time()

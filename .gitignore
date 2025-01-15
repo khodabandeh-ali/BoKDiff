@@ -17,6 +17,13 @@ pregen_info/
 junk.py
 nohup.out
 
+# Ignore log file
+log_all_exps.txt
+log.txt
+results.csv
+results_bests.csv
+results_grid_search.csv
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
