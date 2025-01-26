@@ -172,3 +172,6 @@ def _markInRange2(query_points, ref_points, cutoff):
 nohup python ./scripts/alignment.py &
 nohup python ./scripts/final_eval.py & -->
 
+### Acknowledgements
+
+This project builds upon and heavily relies on the work from [DecompDiff](https://github.com/bytedance/DecompDiff). Their contributions and innovative solutions played a crucial role in the development of this project. We sincerely thank the authors for making their code openly available and for their dedication to the community.
